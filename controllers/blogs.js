@@ -4,8 +4,10 @@ const Blog = require('../models/blog');
 blogsRouter.get('/', async (request, response) => {
 
   try{
+
     const blogs = await Blog.find({});
     return response.json(blogs);
+
   } catch(exception) {
     console.log("Exception occured: ", exception)
   }
@@ -15,20 +17,47 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', async (request, response) => {
 
   try{
-    const blog = new Blog(request.body);
 
+    const blog = new Blog(request.body);
     const savedBlog = await blog.save();
     response.status(201).json(savedBlog);
-  }catch(exception){
+
+  } catch(exception){
     console.log("Exception occured", exception)
   }
-  // const blog = new Blog(request.body);
-  //
-  // blog
-  //   .save()
-  //   .then((result) => {
-  //     response.status(201).json(result);
-  //   });
 });
+
+blogsRouter.delete('/:id', async (request, response) => {
+
+  try{
+
+    await Blog.findByIdAndRemove(request.params.id);
+    return response.status(204).end();
+
+  } catch(exception){
+      console.log("Exception occured", exception)
+  }
+});
+
+blogsRouter.put('/:id', async (request, response) => {
+  try{
+    const body = request.body;
+    oldBlog = await Blog.findById(request.params.id).lean();
+
+    const blog = {
+      title: body.title ? body.title : oldBlog.title,
+      author: body.author ? body.author : oldBlog.author,
+      url: body.url ? body.url : oldBlog.url,
+      likes: body.likes ? body.likes: oldBlog.likes,
+    }
+
+    const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, {new: true});
+
+    return response.json(updatedBlog);
+
+  } catch(exception){
+    console.log("Error occured: ", exception)
+  }
+})
 
 module.exports = blogsRouter;
