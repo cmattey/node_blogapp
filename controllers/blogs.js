@@ -1,6 +1,7 @@
 const blogsRouter = require('express').Router();
 const Blog = require('../models/blog');
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
 
 blogsRouter.get('/', async (request, response) => {
 
@@ -18,10 +19,18 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', async (request, response) => {
 
   try{
-    const blog = new Blog(request.body);
-    const user = await User.findOne({});
 
+    const decodedToken = jwt.verify(request.token, process.env.SECRET);
+
+    if (!token || !decodedToken.id) {
+      return response.status(401).json({error: 'token missing or invalid'});
+    }
+
+    const user = await User.findById(decodedToken.id);
+
+    const blog = new Blog(request.body);
     blog.user = user._id;
+
     const savedBlog = await blog.save();
 
     user.blogs = user.blogs.concat(savedBlog._id);
@@ -29,7 +38,7 @@ blogsRouter.post('/', async (request, response) => {
     response.status(201).json(savedBlog);
 
   } catch(exception){
-    console.log("Exception occured", exception)
+    console.log("Exception occured in token verification", exception)
   }
 });
 
