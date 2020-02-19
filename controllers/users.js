@@ -39,4 +39,16 @@ usersRouter.get('/', async (request, response) => {
   }
 })
 
+usersRouter.get('/:id', async (request, response) => {
+  try{
+
+    const user = await User.findById(request.params.id)
+
+    return response.json(user)
+
+  }catch(exception){
+    console.log("Exception occured in users controller: ",exception)
+  }
+})
+
 module.exports = usersRouter;
