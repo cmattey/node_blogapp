@@ -7,7 +7,7 @@ blogsRouter.get('/', async (request, response) => {
 
   try{
 
-    const blogs = await Blog.find({}).populate('user',{username:1, name:1, id:1});
+    const blogs = await Blog.find().populate('user',{username:1, name:1, id:1});
     return response.json(blogs);
 
   } catch(exception) {
@@ -16,19 +16,30 @@ blogsRouter.get('/', async (request, response) => {
 
 });
 
+blogsRouter.get('/:id', async (request, response) => {
+  try{
+      const blog = await Blog.findById(request.params.id);
+      response.status(200).json(blog);
+
+  } catch(exception){
+    console.log("Exception occured in Backend blogs controller:", exception)
+  }
+})
+
 blogsRouter.post('/', async (request, response) => {
 
   try{
 
     const decodedToken = jwt.verify(request.token, process.env.SECRET);
 
-    if (!token || !decodedToken.id) {
+    if (!request.token || !decodedToken.id) {
       return response.status(401).json({error: 'token missing or invalid'});
     }
 
     const user = await User.findById(decodedToken.id);
 
     const blog = new Blog(request.body);
+    
     blog.user = user._id;
 
     const savedBlog = await blog.save();
